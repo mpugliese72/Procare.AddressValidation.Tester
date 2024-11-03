@@ -37,17 +37,18 @@ public class AddressValidationService : BaseHttpService
         {
             try
             {
-                if ((response.StatusCode == HttpStatusCode.InternalServerError ||
-                    response.StatusCode == HttpStatusCode.RequestTimeout) && (start <= 750))
+                if ((int)response.StatusCode >= 500 && (int)response.StatusCode < 600)
                 {
-                    // retry the request 
+                    // retry the request
                     await GetAddressesAsync(request).ConfigureAwait(false);
                     remainingTries--;
                 }
-                else if (start > 750)
+                else if (start > 750.00000)
                 {
                     // cancel the token and retry
-                    token.ThrowIfCancellationRequested();
+                    CancellationTokenSource source = new();
+                    token = source.Token;
+                    source.Cancel();
                     remainingTries--;
                 }
                 else
